@@ -1,0 +1,15 @@
+[package]
+name = "ftp-paperless-bridge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-tempfile = "0.7.0"
+async-trait = "0.1.88"
+clap = { version = "4.5.40", features = ["wrap_help", "derive", "cargo", "env"] }
+color-eyre = "0.6.5"
+env_logger = "0.11.8"
+libunftp = "0.21.0"
+log = "0.4.27"
+paperless_ngx_api = "0.2.0"
+tokio = { version = "1.45.1", features = ["rt-multi-thread", "macros", "time"] }
