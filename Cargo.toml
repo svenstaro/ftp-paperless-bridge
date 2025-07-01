@@ -1,5 +1,8 @@
 [package]
 name = "ftp-paperless-bridge"
+description = "Present a FTP server to your network scanner and forward anything received to paperless-ngx"
+license = "Apache-2.0"
+repository = "https://github.com/svenstaro/ftp-paperless-bridge"
 version = "0.1.0"
 edition = "2024"
 
