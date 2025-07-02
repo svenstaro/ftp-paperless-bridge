@@ -14,8 +14,5 @@ color-eyre = "0.6.5"
 env_logger = "0.11.8"
 libunftp = "0.21.0"
 log = "0.4.27"
-paperless_ngx_api = { version = "0.2.0", features = ["rustls-tls"], default-features = false }
+paperless_ngx_api = { version = "0.3.0", features = ["rustls-tls"], default-features = false }
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "macros", "time"] }
-
-[patch.crates-io]
-paperless_ngx_api = { git = "https://github.com/svenstaro/lib-paperless-ngx-rs.git", branch = "allow-rustls" }
