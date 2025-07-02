@@ -8,6 +8,7 @@ use async_tempfile::TempFile;
 use async_trait::async_trait;
 use clap::Parser;
 use color_eyre::eyre::Result;
+use libunftp::options::ActivePassiveMode;
 use libunftp::{
     auth::{AuthenticationError, Authenticator, Credentials, UserDetail},
     storage::{
@@ -325,6 +326,7 @@ pub async fn main() -> Result<()> {
     info!("Starting FTP server at {}", args.listen);
     let ftp_server = libunftp::ServerBuilder::with_authenticator(paperless_storage, authenticator)
         .greeting("ftp-paperless-bridge")
+        .active_passive_mode(ActivePassiveMode::ActiveOnly)
         .build()?;
     ftp_server.listen(args.listen).await?;
 
