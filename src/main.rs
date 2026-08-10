@@ -10,17 +10,17 @@ use async_trait::async_trait;
 use clap::Parser;
 use color_eyre::eyre::Result;
 use libunftp::options::ActivePassiveMode;
-use libunftp::{
-    auth::{AuthenticationError, Authenticator, Credentials, UserDetail},
+use log::{debug, error, info, warn};
+use paperless_ngx_api::client::{PaperlessNgxClient, PaperlessNgxClientBuilder};
+use tokio::io::AsyncSeekExt;
+use tokio::time::{Instant, sleep};
+use unftp_core::{
+    auth::{AuthenticationError, Authenticator, Credentials, DefaultUser, Principal},
     storage::{
         Error as StorageError, ErrorKind::LocalError, Fileinfo, Metadata, Result as StorageResult,
         StorageBackend,
     },
 };
-use log::{debug, error, info, warn};
-use paperless_ngx_api::client::{PaperlessNgxClient, PaperlessNgxClientBuilder};
-use tokio::io::AsyncSeekExt;
-use tokio::time::{Instant, sleep};
 
 fn parse_port_range(src: &str) -> Result<RangeInclusive<u16>, String> {
     let parts: Vec<_> = src.split("-").collect();
@@ -129,12 +129,12 @@ impl Metadata for Meta {
 }
 
 #[async_trait]
-impl StorageBackend<User> for PaperlessStorage {
+impl StorageBackend<DefaultUser> for PaperlessStorage {
     type Metadata = Meta;
 
     async fn metadata<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         _path: P,
     ) -> StorageResult<Self::Metadata> {
         unimplemented!()
@@ -142,18 +142,18 @@ impl StorageBackend<User> for PaperlessStorage {
 
     async fn list<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         _path: P,
     ) -> StorageResult<Vec<Fileinfo<PathBuf, Self::Metadata>>>
     where
-        <Self as StorageBackend<User>>::Metadata: Metadata,
+        <Self as StorageBackend<DefaultUser>>::Metadata: Metadata,
     {
         unimplemented!()
     }
 
     async fn get<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         _path: P,
         _start_pos: u64,
     ) -> StorageResult<Box<dyn tokio::io::AsyncRead + Send + Sync + Unpin>> {
@@ -165,7 +165,7 @@ impl StorageBackend<User> for PaperlessStorage {
         R: tokio::io::AsyncRead + Send + Sync + Unpin + 'static,
     >(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         input: R,
         path: P,
         start_pos: u64,
@@ -232,7 +232,7 @@ impl StorageBackend<User> for PaperlessStorage {
 
     async fn del<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         _path: P,
     ) -> StorageResult<()> {
         unimplemented!()
@@ -240,7 +240,7 @@ impl StorageBackend<User> for PaperlessStorage {
 
     async fn mkd<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         _path: P,
     ) -> StorageResult<()> {
         unimplemented!()
@@ -248,7 +248,7 @@ impl StorageBackend<User> for PaperlessStorage {
 
     async fn rename<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         _from: P,
         _to: P,
     ) -> StorageResult<()> {
@@ -257,7 +257,7 @@ impl StorageBackend<User> for PaperlessStorage {
 
     async fn rmd<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         _path: P,
     ) -> StorageResult<()> {
         unimplemented!()
@@ -265,7 +265,7 @@ impl StorageBackend<User> for PaperlessStorage {
 
     async fn cwd<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &User,
+        _user: &DefaultUser,
         _path: P,
     ) -> StorageResult<()> {
         unimplemented!()
@@ -286,12 +286,12 @@ impl UsernamePasswordAuthenticator {
 
 #[async_trait]
 
-impl Authenticator<User> for UsernamePasswordAuthenticator {
+impl Authenticator for UsernamePasswordAuthenticator {
     async fn authenticate(
         &self,
         username: &str,
         creds: &Credentials,
-    ) -> Result<User, AuthenticationError> {
+    ) -> Result<Principal, AuthenticationError> {
         if let Some(ref password) = creds.password
             && *password != self.password
         {
@@ -303,18 +303,9 @@ impl Authenticator<User> for UsernamePasswordAuthenticator {
             return Err(AuthenticationError::BadUser);
         }
         info!("Successfully authenticated");
-        Ok(User {})
-    }
-}
-
-#[derive(Debug)]
-struct User;
-
-impl UserDetail for User {}
-
-impl std::fmt::Display for User {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "User")
+        Ok(Principal {
+            username: username.to_string(),
+        })
     }
 }
 
