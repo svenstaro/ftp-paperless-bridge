@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 
 ## [Unreleased] - ReleaseDate
+- Install ca-certificates in the container image
 
 ## [0.3.0] - 2026-08-10
 - Bump deps
