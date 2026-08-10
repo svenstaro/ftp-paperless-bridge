@@ -298,7 +298,6 @@ impl UsernamePasswordAuthenticator {
 }
 
 #[async_trait]
-
 impl Authenticator for UsernamePasswordAuthenticator {
     async fn authenticate(
         &self,
