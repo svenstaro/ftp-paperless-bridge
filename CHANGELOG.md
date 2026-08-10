@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 
 ## [Unreleased] - ReleaseDate
+- Bump deps
+- Switch from paperless_ngx_api to paperless-api
 
 ## [0.2.1] - 2025-08-18
 - Actually make use of the set passive mode ports
