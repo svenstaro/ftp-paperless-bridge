@@ -8,10 +8,11 @@ use std::time::Duration;
 use async_tempfile::TempFile;
 use async_trait::async_trait;
 use clap::Parser;
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{Result, eyre};
 use libunftp::options::ActivePassiveMode;
 use log::{debug, error, info, warn};
-use paperless_ngx_api::client::{PaperlessNgxClient, PaperlessNgxClientBuilder};
+use paperless_api::PaperlessClient;
+use paperless_api::task::TaskStatus;
 use tokio::io::AsyncSeekExt;
 use tokio::time::{Instant, sleep};
 use unftp_core::{
@@ -80,7 +81,7 @@ pub struct CliArgs {
 }
 
 struct PaperlessStorage {
-    paperless_client: Arc<PaperlessNgxClient>,
+    paperless_client: Arc<PaperlessClient>,
 }
 
 impl std::fmt::Debug for PaperlessStorage {
@@ -90,7 +91,7 @@ impl std::fmt::Debug for PaperlessStorage {
 }
 
 impl PaperlessStorage {
-    pub fn new(paperless_client: Arc<PaperlessNgxClient>) -> Self {
+    pub fn new(paperless_client: Arc<PaperlessClient>) -> Self {
         Self { paperless_client }
     }
 }
@@ -179,8 +180,9 @@ impl StorageBackend<DefaultUser> for PaperlessStorage {
             } else {
                 TempFile::new().await.unwrap()
             };
-        let path = tempfile.file_path().to_str().unwrap().to_owned();
-        debug!("Saving upload to {path}");
+        let temp_path = tempfile.file_path().to_owned();
+        let file_name = temp_path.file_name().unwrap().to_string_lossy().to_string();
+        debug!("Saving upload to {}", temp_path.display());
 
         tempfile.set_len(start_pos).await.unwrap();
         tempfile
@@ -194,9 +196,13 @@ impl StorageBackend<DefaultUser> for PaperlessStorage {
 
         // Now we'll upload the file.
         //
-        // The upload returns immediately and gives us a Task that we'll have to poll.
-        let task = match self.paperless_client.upload(&path).await {
-            Ok(task) => task,
+        // The upload returns immediately and gives us a task id that we'll have to poll.
+        let task_id = match self
+            .paperless_client
+            .upload_document(&temp_path, &file_name)
+            .await
+        {
+            Ok(task_id) => task_id,
             Err(e) => {
                 error!("{e}");
                 return Err(StorageError::new(LocalError, e));
@@ -206,18 +212,25 @@ impl StorageBackend<DefaultUser> for PaperlessStorage {
         let now = Instant::now();
         loop {
             sleep(Duration::from_secs(1)).await;
-            let task_status = task.status().await.unwrap();
+            let tasks = self
+                .paperless_client
+                .get_task_status(Some(&task_id), None, None)
+                .await
+                .unwrap();
+            let task_status = tasks.first().map(|task| task.status);
 
             debug!("Task status: {task_status:#?}");
 
-            if task_status.status == "STARTED" {
-                info!("File uploaded Successfully");
-                break;
-            }
-
-            if task_status.status == "FAILURE" || task_status.status == "REVOKED" {
-                error!("Upload failed");
-                break;
+            match task_status {
+                Some(TaskStatus::Started | TaskStatus::Success) => {
+                    info!("File uploaded Successfully");
+                    break;
+                }
+                Some(TaskStatus::Failure | TaskStatus::Revoked) => {
+                    error!("Upload failed");
+                    break;
+                }
+                _ => (),
             }
 
             // Wait a maximum of 10 seconds.
@@ -324,14 +337,12 @@ pub async fn main() -> Result<()> {
     }
     env_logger::init();
 
-    // Verify our config works by fetching some docs.
+    // Verify our config works by fetching some server statistics.
     let paperless_client = Arc::new(
-        PaperlessNgxClientBuilder::default()
-            .set_url(&args.paperless_url)
-            .set_auth_token(&args.paperless_api_token)
-            .build()?,
+        PaperlessClient::new(&args.paperless_url, &args.paperless_api_token, None)
+            .map_err(|e| eyre!(e))?,
     );
-    paperless_client.documents(None).await?;
+    paperless_client.get_statistics().await?;
 
     let authenticator = Arc::new(UsernamePasswordAuthenticator::new(
         args.username,

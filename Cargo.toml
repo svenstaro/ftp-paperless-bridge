@@ -14,6 +14,13 @@ color-eyre = "0.6.5"
 env_logger = "0.11.8"
 libunftp = "0.23.0"
 log = "0.4.27"
-paperless_ngx_api = { version = "0.3.0", features = ["rustls-tls"], default-features = false }
+paperless-api = "0.18.0"
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "macros", "time"] }
 unftp-core = "0.1.0"
+
+# The crates.io release of paperless-api streams uploads without a Content-Length
+# header, which paperless rejects unless it sits behind a buffering reverse proxy.
+# Use our fixed fork until the fix is released upstream, see
+# https://github.com/tripplet/paperless-api/issues/7
+[patch.crates-io]
+paperless-api = { git = "https://github.com/svenstaro/paperless-api", branch = "fix-upload-document" }
