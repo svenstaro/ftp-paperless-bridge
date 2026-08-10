@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 
 ## [Unreleased] - ReleaseDate
+- Switch container base image to distroless/cc (which ships CA certificates)
 
 ## [0.3.1] - 2026-08-10
 - Install ca-certificates in the container image
