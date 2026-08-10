@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 
 ## [Unreleased] - ReleaseDate
+
+## [0.3.2] - 2026-08-10
 - Switch container base image to distroless/cc (which ships CA certificates)
 
 ## [0.3.1] - 2026-08-10
@@ -27,7 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/svenstaro/ftp-paperless-bridge/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/svenstaro/ftp-paperless-bridge/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/svenstaro/ftp-paperless-bridge/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/svenstaro/ftp-paperless-bridge/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/svenstaro/ftp-paperless-bridge/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/svenstaro/ftp-paperless-bridge/compare/v0.2.0...v0.2.1
