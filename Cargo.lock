@@ -1545,8 +1545,9 @@ checksum = "d211803b9b6b570f68772237e415a029d5a50c65d382910b879fb19d3271f94d"
 
 [[package]]
 name = "paperless-api"
-version = "0.18.0"
-source = "git+https://github.com/svenstaro/paperless-api?branch=fix-upload-document#635b79d6bc77b38be50e089fee05f7e91d8fd1d0"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c696c7fcd34610b792750d7bc7ba35024cc719187cc9cb23ea9dcfd24067ea67"
 dependencies = [
  "chrono",
  "derive_more",
@@ -1567,7 +1568,8 @@ dependencies = [
 [[package]]
 name = "paperless-api-macros"
 version = "0.16.0"
-source = "git+https://github.com/svenstaro/paperless-api?branch=fix-upload-document#635b79d6bc77b38be50e089fee05f7e91d8fd1d0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8513fc32271960fd1c14d4acc91e9f7ccbe8267a3282133a96183ec0496b152"
 dependencies = [
  "proc-macro2",
  "quote",
